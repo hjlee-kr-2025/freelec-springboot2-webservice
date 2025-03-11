@@ -3,6 +3,7 @@ package com.jojoldu.book.springboot.web;
 import com.jojoldu.book.springboot.domain.posts.Posts;
 import com.jojoldu.book.springboot.domain.posts.PostsRepository;
 import com.jojoldu.book.springboot.web.dto.PostsSaveRequestDto;
+import com.jojoldu.book.springboot.web.dto.PostsUpdateRequestDto;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -41,7 +44,7 @@ public class PostsApiControllerTest {
     }
 
     @Test
-    public void Posts_save() throws Exception {
+    public void posts_save() throws Exception {
         // 데이터 세팅 : 3가지
         String title = "title";
         String content = "content";
@@ -56,7 +59,7 @@ public class PostsApiControllerTest {
                 .build();
         
         // Post방식으로 페이지 호출되는 url 생성
-        String url = "http://localhost:"+port+"/api/v1/ports";
+        String url = "http://localhost:"+port+"/api/v1/posts";
         
         // 페이지 호출(데이터와 함께)
         ResponseEntity<Long> responseEntity
@@ -75,5 +78,45 @@ public class PostsApiControllerTest {
         assertThat(all.get(0).getTitle()).isEqualTo(title);
         assertThat(all.get(0).getContent()).isEqualTo(content);
         assertThat(all.get(0).getAuthor()).isEqualTo(author);
-    }
+    }   // end of posts_save()
+
+    @Test
+    public void posts_update() throws Exception {
+        // 데이터베이스에 수정전 값 세팅
+        Posts savePosts = postsRepository.save(Posts.builder()
+                        .title("title")
+                        .content("content")
+                        .author("author")
+                .build());
+
+        Long updateId = savePosts.getId();
+        // 수정할 값 세팅
+        String expectedTitle = "title2";
+        String expectedContent = "content2";
+
+        PostsUpdateRequestDto requestDto =
+                PostsUpdateRequestDto.builder()
+                        .title(expectedTitle)
+                        .content(expectedContent)
+                        .build();
+
+        // url세팅
+        String url = "http://localhost:"+port+"/api/v1/posts/"+updateId;
+
+        HttpEntity<PostsUpdateRequestDto> requestEntity
+                = new HttpEntity<>(requestDto);
+        
+        // url 접근 -> 컨트롤러를 통해 데이터베이스 접근 -> 수정작업
+        ResponseEntity<Long> responseEntity
+                = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Long.class );
+        
+        // 결과 확인
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isGreaterThan(0L);
+        
+        // 수정이 되었는지 데이터베이스에서 값을 꺼낸후 체크
+        List<Posts> all = postsRepository.findAll();
+        assertThat(all.get(0).getTitle()).isEqualTo(expectedTitle);
+        assertThat(all.get(0).getContent()).isEqualTo(expectedContent);
+    } // end of posts_update()
 }
