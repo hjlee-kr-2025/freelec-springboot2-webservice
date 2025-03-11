@@ -9,6 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 // 데이터베이스가 잘 동작하는지 테스트 하는 클래스
@@ -50,5 +51,27 @@ public class PostsRepositoryTest {
         assertThat(posts.getTitle()).isEqualTo(title);
         assertThat(posts.getContent()).isEqualTo(content);
         assertThat(posts.getAuthor()).isEqualTo(author);
-    }
+    } // end of contents_save_load()
+
+    @Test
+    public void baseTimeEntity_save() {
+        LocalDateTime now = LocalDateTime.of(2025,3,11,15,23,0);
+        postsRepository.save(Posts.builder()
+                        .title("title")
+                        .content("content")
+                        .author("author")
+                .build());
+        // 데이터 가져오기
+        List<Posts> postsList = postsRepository.findAll();
+
+        // 첫번째 글을 세팅
+        Posts posts = postsList.get(0);
+
+        System.out.println(">>>>> createdDate="+
+                posts.getCreatedDate()+", modifiedDate="+
+                posts.getModifiedDate());
+
+        assertThat(posts.getCreatedDate()).isEqualTo(now);
+        assertThat(posts.getModifiedDate()).isEqualTo(now);
+    } // end of baseTimeEntity_save()
 }

@@ -1,5 +1,6 @@
 package com.jojoldu.book.springboot.domain.posts;
 
+import com.jojoldu.book.springboot.domain.BaseTimeEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import javax.persistence.*;
 @NoArgsConstructor// 기본생성자를 만들어 줍니다.
 // JPA의 어노테이션
 @Entity
-public class Posts {
+public class Posts extends BaseTimeEntity {
     @Id // PK 나타내는 어노테이션
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     //==> PK생성규칙인데, auto_increment를 사용한다는 의미.
